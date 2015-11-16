@@ -1188,6 +1188,7 @@ static const char help[] =
   "Options:\n"
   "  -c, --config FILE     Load specified config file\n"
   "  -e, --exec            Treat remaining arguments as the command to execute\n"
+  "  -E, --env VAR=VALUE   Set specified environment variable\n"
   "  -h, --hold never|start|error|always  Keep window open after command finishes\n"
   "  -i, --icon FILE[,IX]  Load window icon from file, optionally with index\n"
   "  -l, --log FILE|-      Log output to file or stdout\n"
@@ -1202,13 +1203,14 @@ static const char help[] =
   "  -V, --version         Print version information and exit\n"
 ;
 
-static const char short_opts[] = "+:c:C:eh:i:l:o:p:s:t:T:B:R:uw:HVd";
+static const char short_opts[] = "+:c:C:eE:h:i:l:o:p:s:t:T:B:R:uw:HVd";
 
 static const struct option
 opts[] = {
   {"config",     required_argument, 0, 'c'},
   {"loadconfig", required_argument, 0, 'C'},
   {"exec",       no_argument,       0, 'e'},
+  {"env",        required_argument, 0, 'E'},
   {"hold",       required_argument, 0, 'h'},
   {"icon",       required_argument, 0, 'i'},
   {"log",        required_argument, 0, 'l'},
@@ -1467,6 +1469,18 @@ DEFINE_PROPERTYKEY(PKEY_AppUserModel_StartPinOption, 0x9f4c2855,0x9f79,0x4B39,0x
 #endif
 }
 
+static void
+set_arg_env(char *arg)
+{
+  char *pos = strchr(arg, '=');
+  if (pos == NULL)
+    unsetenv(arg);
+  else {
+    *pos++ = '\0';
+    setenv(arg, pos, true);
+  }
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -1509,6 +1523,7 @@ main(int argc, char *argv[])
     switch (opt) {
       when 'c': load_config(optarg, true);
       when 'C': load_config(optarg, false);
+      when 'E': set_arg_env(optarg);
       when 'h': set_arg_option("Hold", optarg);
       when 'i': set_arg_option("Icon", optarg);
       when 'l': set_arg_option("Log", optarg);
